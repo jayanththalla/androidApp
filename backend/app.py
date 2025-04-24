@@ -19,6 +19,17 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB in bytes
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_PATH'] = 500 * 1024 * 1024  # Also set max content path
 
+# Root route
+@app.route('/')
+def index():
+    return jsonify({
+        "status": "API is running",
+        "endpoints": {
+            "upload": "/api/upload",
+            "analyze": "/api/analyze"
+        }
+    })
+
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     try:
