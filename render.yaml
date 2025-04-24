@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: android-app-analyzer
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn --config gunicorn.conf.py wsgi:app
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PYTHONPATH
+        value: /opt/render/project/src/backend
+    plan: free
+    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/backend/uploads
+      sizeGB: 1 

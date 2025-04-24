@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import shutil
+import gc
 from androguard.misc import AnalyzeAPK
 from werkzeug.utils import secure_filename
 
@@ -72,19 +73,32 @@ def analyze():
         if not os.path.exists(filepath):
             return jsonify({'error': 'File not found'}), 404
         
-        # Analyze the APK with Androguard
-        a, d, dx = AnalyzeAPK(filepath)
+        # Force garbage collection before analysis
+        gc.collect()
+        
+        # Analyze the APK with Androguard - only extract what we need
+        a, d, dx = AnalyzeAPK(filepath, skip_analysis=True)
+        
+        # Extract only the information we need to reduce memory usage
+        app_name = a.get_app_name()
+        package_name = a.get_package()
+        permissions = list(a.get_permissions())
+        
+        # Clear references to large objects
+        del d
+        del dx
+        gc.collect()
         
         # Extract relevant information
         analysis = {
-            "app_name": a.get_app_name(),
-            "package_name": a.get_package(),
-            "permissions": list(a.get_permissions()),
+            "app_name": app_name,
+            "package_name": package_name,
+            "permissions": permissions,
         }
         
         # Generate mitigations based on permissions
         mitigations = []
-        for perm in analysis["permissions"]:
+        for perm in permissions:
             if "INTERNET" in perm:
                 mitigations.append("Ensure secure transmission with HTTPS.")
             if "ACCESS_FINE_LOCATION" in perm or "ACCESS_COARSE_LOCATION" in perm:
@@ -106,6 +120,9 @@ def analyze():
             os.remove(filepath)
         except Exception as e:
             print(f"Error removing file: {e}")
+        
+        # Force garbage collection after analysis
+        gc.collect()
         
         return jsonify({
             "analysis": analysis,
