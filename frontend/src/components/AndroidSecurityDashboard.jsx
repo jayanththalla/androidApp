@@ -304,7 +304,7 @@ const AndroidSecurityDashboard = () => {
           </motion.div>
           {/* Image beside Analysis Logs */}
           <motion.img
-            src='/public/1.png'
+            src='/1.png'
             alt="Analysis Illustration"
             // className="hidden lg:block w-1/3 h-auto rounded-xl shadow-lg"
             initial={{ opacity: 0, y: 0 }}
